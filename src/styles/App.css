@@ -1,0 +1,34 @@
+/* Import font HARUS di paling atas */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+/* Import Tailwind */
+@import "tailwindcss";
+
+/* Custom global style */
+* {
+  box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* Custom theme colors (Tailwind 4 format pakai @theme) */
+@theme {
+  --color-primary: #FF5E00;
+  --color-secondary: #EF5800;
+  --color-gray: #F8F8F8;
+  --color-gray-light: #EFF2F7;
+  --color-gray-dark: #7F8690;
+  --color-text-white: #FFFFFF;
+  --color-text-black: #010101;
+  --color-text-gray: #7F8690;
+}
+
+
+
+
+/* Login */
+.bg-login{
+  background-image: url(../assets/image/bg-login.png);
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
