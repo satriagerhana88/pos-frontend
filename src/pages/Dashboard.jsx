@@ -6,7 +6,7 @@ const Dashboard = ({ onLogout }) => {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center border">
         <TopbarContent />
       </div>
 

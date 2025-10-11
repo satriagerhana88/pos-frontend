@@ -10,6 +10,7 @@ import Branch from "./pages/Branch";
 import Reports from "./pages/Reports";
 import StockOpname from "./pages/StockOpname";
 import Users from "./pages/Users";
+import SearchResults from "./pages/SearchResults";
 
 const App = () => {
   const [token, setToken] = useState(localStorage.getItem("token"));
@@ -36,6 +37,7 @@ const App = () => {
       <Layout onLogout={handleLogout}>
         <Routes>
           <Route path="/" element={<Dashboard onLogout={handleLogout} />} />
+          <Route path="/search" element={<SearchResults />} />
           <Route path="/pos" element={<POS />} />
           <Route path="/products" element={<Products />} />
           <Route path="/branch" element={<Branch />} />

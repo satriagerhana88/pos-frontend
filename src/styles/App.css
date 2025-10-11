@@ -14,11 +14,11 @@
 @theme {
   --color-primary: #FF5E00;
   --color-secondary: #EF5800;
-  --color-gray: #F8F8F8;
-  --color-gray-light: #EFF2F7;
+  --color-gray: #EFF2F7;
+  --color-gray-light: #F8F8F8;
   --color-gray-dark: #7F8690;
   --color-text-white: #FFFFFF;
-  --color-text-black: #010101;
+  --color-text-black: #1E2939;
   --color-text-gray: #7F8690;
 }
 
