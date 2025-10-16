@@ -6,9 +6,7 @@ const Dashboard = ({ onLogout }) => {
 
   return (
     <div>
-      <div className="flex justify-between items-center border">
         <TopbarContent />
-      </div>
 
       {/* Konten utama dashboard */}
       <div className="bg-white p-6 rounded shadow">

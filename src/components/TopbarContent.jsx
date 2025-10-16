@@ -1,36 +1,23 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { BiBell, BiSearch } from "react-icons/bi";
-import { useNavigate } from "react-router-dom";
+// import { useNavigate } from "react-router-dom";
+
+const WS_URL = "ws://localhost:5000"; // sesuaikan dengan server WS-mu
 
 const TopbarContent = () => {
   const [user, setUser] = useState(null);
-  const [search, setSearch] = useState("");
   const [notifications, setNotifications] = useState([]);
   const [showNotif, setShowNotif] = useState(false);
-  const navigate = useNavigate();
+  const wsRef = useRef(null);
 
-  useEffect(() => {
-    const userData = JSON.parse(localStorage.getItem("user"));
-    if (!userData) return;
-
-    setUser(userData);
-    fetchNotifications(userData);
-
-    const interval = setInterval(() => fetchNotifications(userData), 5000);
-    return () => clearInterval(interval);
-  }, []);
-
+  // Fetch unread notifications via REST
   const fetchNotifications = async (userData) => {
     try {
       if (!userData) return;
       const { role, branch_id } = userData;
-
       let url = "http://localhost:5000/api/notifications/unread";
-      if (role !== "SUPER_ADMIN") {
-        url += `?branch_id=${branch_id}`;
-      }
-
+      if (role !== "SUPER_ADMIN") url += `?branch_id=${branch_id}`;
       const res = await axios.get(url);
       setNotifications(res.data || []);
     } catch (err) {
@@ -38,6 +25,7 @@ const TopbarContent = () => {
     }
   };
 
+  // Mark notification as read
   const handleMarkAsRead = async (id) => {
     try {
       await axios.put(`http://localhost:5000/api/notifications/${id}/read`);
@@ -47,21 +35,61 @@ const TopbarContent = () => {
     }
   };
 
-  // 🔍 Redirect ke halaman /search?q=...
-  const handleSearch = (e) => {
-    e.preventDefault();
-    if (!search.trim()) return;
-    navigate(`/search?q=${encodeURIComponent(search)}`);
-    setSearch("");
+  // Init WebSocket connection
+  const initWebSocket = (userData) => {
+    if (!userData) return;
+    const ws = new WebSocket(WS_URL);
+    wsRef.current = ws;
+
+    ws.onopen = () => {
+      console.log("Connected to WebSocket server");
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        console.log("Received WS message:", data);
+        // Tambahkan notif baru ke state
+        setNotifications((prev) => [data, ...prev]);
+      } catch (err) {
+        console.error("WS message parse error:", err);
+      }
+    };
+
+    ws.onclose = () => {
+      console.log("WebSocket disconnected, retrying in 3s...");
+      // Auto-reconnect
+      setTimeout(() => initWebSocket(userData), 3000);
+    };
+
+    ws.onerror = (err) => {
+      console.error("WebSocket error:", err);
+      ws.close();
+    };
   };
 
+  useEffect(() => {
+    const userData = JSON.parse(localStorage.getItem("user"));
+    if (!userData) return;
+
+    setUser(userData);
+    fetchNotifications(userData);
+    initWebSocket(userData);
+
+    const interval = setInterval(() => fetchNotifications(userData), 5000);
+    return () => {
+      clearInterval(interval);
+      wsRef.current?.close();
+    };
+  }, []);
+
   return (
-    <div className="w-full px-6 py-3 flex flex-row justify-between sticky top-0 z-40 gap-2 bg-white shadow-sm">
+    <div className="w-full flex flex-row justify-between sticky top-0 z-40 gap-2">
       {/* Left: Welcome Text */}
       <div className="w-1/2">
-        <h2 className="text-lg font-semibold text-gray-800">
+        <h2 className="text-lg text-gray-800">
           Welcome,{" "}
-          <span className="text-orange-500">{user?.name || "User"}</span>
+          <span className="text-text-black font-bold">{user?.name || "User"}</span>
         </h2>
         <p className="text-sm text-gray-500">
           {user?.role === "SUPER_ADMIN"
@@ -70,24 +98,8 @@ const TopbarContent = () => {
         </p>
       </div>
 
-      {/* Right: Search + Notification */}
-      <div className="flex flex-row items-center justify-end gap-2 w-1/2">
-        {/* Search */}
-        <form
-          onSubmit={handleSearch}
-          className="flex items-center bg-gray rounded-lg px-4 py-2.5 w-[70%] focus-within:ring-0 transition"
-        >
-          <BiSearch size={18} className="text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search product, customer, or invoice..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="bg-transparent ml-2 w-full outline-none text-sm text-gray-700 placeholder:text-gray-400"
-          />
-        </form>
-
-        {/* Notification */}
+      {/* Right: Notification */}
+      <div className="flex flex-row items-center justify-end gap-2 w-1/2 mb-10">
         <div className="relative">
           <button
             onClick={() => setShowNotif((prev) => !prev)}
@@ -114,9 +126,7 @@ const TopbarContent = () => {
                       onClick={() => handleMarkAsRead(n.id)}
                       className="p-3 border-b hover:bg-gray-50 text-sm text-gray-700 transition cursor-pointer"
                     >
-                      <span className="font-medium text-gray-800">
-                        {n.title}
-                      </span>
+                      <span className="font-medium text-gray-800">{n.title}</span>
                       <p className="text-xs text-gray-500">{n.message}</p>
                       <p className="text-[10px] text-gray-400 italic mt-1">
                         {new Date(n.created_at).toLocaleString()}

@@ -5,9 +5,8 @@ const Layout = ({ children, onLogout }) => {
   return (
     <div className="flex min-h-screen bg-gray-light">
       <Sidebar onLogout={onLogout} />
-      <div className="flex flex-col flex-1">
-        <main className="p-6">{children}</main>
-        
+      <div className="flex flex-col flex-1 px-6 py-6">
+        <main className="">{children}</main>
       </div>
     </div>
   );
